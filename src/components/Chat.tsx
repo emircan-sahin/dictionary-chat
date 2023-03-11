@@ -4,7 +4,6 @@ import axios from "axios";
 import cheerio from "cheerio";
 
 interface IMessage {
-  id: number;
   content: string;
   sender: "user" | "bot";
 }
@@ -13,23 +12,24 @@ const Chat = () => {
   const [messages, setMessages] = React.useState<IMessage[]>([]);
   const [input, setInput] = React.useState<string>("");
   const [result, setResult] = React.useState<string>("");
-  const [iframeSrc, setIframeSrc] = React.useState<string>("");
-  const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
   React.useEffect(() => {
     setMessages([
       {
-        id: 1,
-        content: "Test",
+        content: "Hi",
         sender: "user",
       },
       {
-        id: 2,
-        content: "Test",
+        content: "Hay",
         sender: "bot",
       },
     ]);
   }, []);
+
+  React.useEffect(() => {
+    const chatEl = document.getElementById("chat");
+    chatEl?.scrollTo(0, 99999999999999999);
+  }, [messages]);
 
   const getClassName = (sender: "user" | "bot") => {
     if (sender === "user") {
@@ -39,34 +39,45 @@ const Chat = () => {
     }
   };
 
-  const handleIframeLoad = () => {
-    console.log("iframe load");
-    setTimeout(() => {
-    console.log("iframe loaded");
-    const iframeDocument = iframeRef.current?.contentDocument;
-    console.log(iframeDocument);
-      if (iframeDocument) {
-        const iframeContent = iframeDocument.documentElement.outerHTML;
-        console.log(iframeContent);
-      }
-    }, 5000);
-  };
-
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setIframeSrc(
-      `https://sozluk.turkceokunusu.com/${input.toLowerCase()}-okunusu/`
-    );
+    setInput("");
+
+    messages.push({
+      content: input,
+      sender: "user",
+    });
+    setMessages([...messages]); 
+
+    axios
+      .get(`https://sozluk.turkceokunusu.com/${input.toLowerCase()}-okunusu/`)
+      .then((res) => {
+        const html = res.data;
+        const $ = cheerio.load(html);
+        let readableWord = $("body")
+          .text()
+          .split("Türkçe okunuşu ")[1]
+          .split(" şeklindedir")[0];
+
+        messages.push({
+          content: readableWord,
+          sender: "bot",
+        });
+        setMessages([...messages]);        
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   return (
     <div className="relative flex flex-col h-full">
-      <span className="py-5 border-b border-zinc-700">Chat</span>
+      <span className="py-5 border-b border-zinc-700">Pronunciations Chat</span>
 
-      <div className="flex flex-col text-left p-5">
+      <div className="flex flex-col text-left p-5 overflow-y-auto mb-24" id="chat">
         {messages.map((message) => (
           <span
-            className={`px-10 py-2 mb-4 w-fit rounded-lg ${getClassName(
+            className={`px-10 py-2 mb-4 w-fit rounded-lg lowercasel ${getClassName(
               message.sender
             )}`}
           >
@@ -74,14 +85,6 @@ const Chat = () => {
           </span>
         ))}
       </div>
-
-      <iframe
-        className=""
-        title="Result"
-        ref={iframeRef}
-        src={iframeSrc}
-        onLoad={handleIframeLoad}
-      />
 
       <form
         className="absolute bottom-0 w-full p-5 border border-zinc-800"

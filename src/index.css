@@ -17,3 +17,12 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.overflow-y-auto::-webkit-scrollbar {
+    width: 4px;
+    background-color: rgb(20, 20, 20);
+  }
+  
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background-color: rgb(43, 43, 43);
+  }
