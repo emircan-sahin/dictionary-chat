@@ -47,7 +47,7 @@ const Chat = () => {
       content: input,
       sender: "user",
     });
-    setMessages([...messages]); 
+    setMessages([...messages]);
 
     axios
       .get(`https://sozluk.turkceokunusu.com/${input.toLowerCase()}-okunusu/`)
@@ -59,14 +59,27 @@ const Chat = () => {
           .split("Türkçe okunuşu ")[1]
           .split(" şeklindedir")[0];
 
-        messages.push({
-          content: readableWord,
-          sender: "bot",
-        });
-        setMessages([...messages]);        
+        if (readableWord.length >= 1) {
+          messages.push({
+            content: readableWord,
+            sender: "bot",
+          });
+          setMessages([...messages]);
+        } else {
+          messages.push({
+            content: "Sorry, I couldn't find the pronunciation of this word.",
+            sender: "bot",
+          });
+          setMessages([...messages]);
+        }
       })
       .catch((err) => {
         console.log(err);
+        messages.push({
+          content: "Sorry, I couldn't find the pronunciation of this word.",
+          sender: "bot",
+        });
+        setMessages([...messages]);
       });
   };
 
@@ -74,7 +87,10 @@ const Chat = () => {
     <div className="relative flex flex-col h-full">
       <span className="py-5 border-b border-zinc-700">Pronunciations Chat</span>
 
-      <div className="flex flex-col text-left p-5 overflow-y-auto mb-24" id="chat">
+      <div
+        className="flex flex-col text-left p-5 overflow-y-auto mb-24"
+        id="chat"
+      >
         {messages.map((message) => (
           <span
             className={`px-10 py-2 mb-4 w-fit rounded-lg lowercasel ${getClassName(
